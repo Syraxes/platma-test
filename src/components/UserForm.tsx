@@ -1,7 +1,15 @@
-import React, { ChangeEvent, FormEvent } from 'react';
-import { Button, TextField, Dialog, DialogContent, Typography, Grid } from '@mui/material';
-import { UserSchema, UserData } from '../types';
-import useUserForm from '../hooks/useUserForm';
+import React, { ChangeEvent, FormEvent, useEffect } from "react";
+import {
+  Button,
+  TextField,
+  Dialog,
+  DialogContent,
+  Typography,
+  Grid,
+} from "@mui/material";
+import { UserSchema, UserData } from "../types";
+import useUserForm from "../hooks/useUserForm";
+import axios from "axios";
 
 interface UserFormProps {
   onSubmit: (userData: UserData) => void;
@@ -23,6 +31,23 @@ const UserForm: React.FC<UserFormProps> = ({ onSubmit, schema }) => {
     closeForm();
   };
 
+  const handleUpdate = async () => {
+    try {
+      const response = await axios.get(
+        "https://jsonplaceholder.typicode.com/users/1"
+      );
+      setFormData(response.data);
+    } catch (error) {
+      console.error("Error updating user data:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isFormOpen) {
+      setFormData({});
+    }
+  }, [isFormOpen]);
+
   return (
     <>
       <Button variant="contained" color="primary" onClick={openForm}>
@@ -36,23 +61,36 @@ const UserForm: React.FC<UserFormProps> = ({ onSubmit, schema }) => {
           </Typography>
           <form onSubmit={handleSubmit}>
             <Grid container spacing={2}>
-              {Object.keys(schema.properties).map(key => (
+              {Object.keys(schema.properties).map((key) => (
                 <Grid item xs={12} key={key}>
                   <TextField
                     fullWidth
                     label={key}
-                    type={schema.properties[key].type === 'integer' ? 'number' : 'text'}
+                    type={
+                      schema.properties[key].type === "integer"
+                        ? "number"
+                        : "text"
+                    }
                     name={key}
-                    value={formData[key] || ''}
+                    value={formData[key] || ""}
                     onChange={handleChange}
                     required
-                    autoComplete="off"  // Отключил автокомплит что б не напрягали предупреждения в браузере, по хорошему должен быть настроен
+                    autoComplete="off"
                   />
                 </Grid>
               ))}
               <Grid item xs={12}>
                 <Button variant="contained" color="primary" type="submit">
                   Submit
+                </Button>
+              </Grid>
+              <Grid item xs={12}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={handleUpdate}
+                >
+                  Update
                 </Button>
               </Grid>
             </Grid>
